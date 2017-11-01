@@ -2,6 +2,7 @@ import csv
 import numpy as np
 import glob
 import os.path
+import pandas as pd
 from keras.utils import np_utils
 
 from keras.preprocessing.image import img_to_array, load_img
@@ -18,21 +19,26 @@ def GetArrayFromImage(image, target_shape):
 
 def GetData():
     with open('./Data/FilesData.csv', 'r') as fin:
-        data = list(csv.reader(fin))
+        reader = csv.reader(fin)
+        data = list(reader)
     return data
-
 
 class DataSetModel():
 
-    def __init__(self, seq_length=40, image_shape=(224, 224, 3)):
+    def __init__(self, seq_length=40, data_type = 'Images', image_shape=(224, 224, 3)):
         # seq_length = the number of frames to consider
         self.seq_length = seq_length
 
         # Get the data.
         self.data = GetData()
 
+        self.dataType = data_type
+        self.sequence_path = './Data/sequences/'
+
         # Get the classes.
         self.classes = self.GetClasses()
+
+        self.data = self.CleanData()
 
         self.image_shape = image_shape
 
@@ -46,7 +52,6 @@ class DataSetModel():
                 classes.append(item[1])
 
         classes = sorted(classes)
-
         return classes
 
     def GetClassOneHot(self, class_str):
@@ -54,7 +59,6 @@ class DataSetModel():
         list. This lets us encode and one-hot it for training."""
         # Encode it first.
         label_encoded = self.classes.index(class_str)
-
         # Now one-hot it.
         label_hot = np_utils.to_categorical(label_encoded, len(self.classes))
         label_hot = label_hot[0]  # just get a single row
@@ -66,32 +70,62 @@ class DataSetModel():
         train = []
         test = []
         for item in self.data:
-            if item[0] == 'train':
+            if item[0] == '../../Videos/Train' :
                 train.append(item)
             else:
                 test.append(item)
         return train, test
 
+    def CleanData(self):
+        data_clean = []
+        for item in self.data:
+            if len(item) == 0 :
+                continue
+            if int(item[3]) >= self.seq_length and item[1] in self.classes:
+                data_clean.append(item)
+
+        return data_clean
+
     def LoadSequencesToMemory(self, train_test):
         train, test = self.SplitDataToTrainAndTest()
-        data = train if train_test == 'train' else test
+        data = train if train_test == 'Train' else test
         
         print("Loading %d samples into memory for %sing." % (len(data), train_test))
 
         X, y = [], []
         for row in data:
 
-            if data_type == 'images':
-                
-            frames = self.GetFramesFromSample(row)
-            frames = self.RescaleList(frames, self.seq_length)
-            
-            sequence = self.BuildImageSequence(frames)
+            if self.dataType == 'Images' :
+                frames = self.GetFramesFromSample(row)
+                img_arr = self.BuildImageSequence(frames)
 
-            X.append(sequence)
-            y.append(self.GetClassOneHot(row[1]))
+                sequence = []
+                start = 0
+                end = self.seq_length
+                for _ in range(len(img_arr) // self.seq_length) :
+                    X.append(img_arr[start : end])
+                    start = end
+                    end = end + self.seq_length
+                    y.append(self.GetClassOneHot(row[1]))
+
+            elif self.dataType == 'Features' :
+                sequence = self.GetExtructedFeatures(self.dataType, row)
+                X.append(sequence)
+                y.append(self.GetClassOneHot(row[1]))
 
         return np.array(X), np.array(y)
+
+    def GetExtructedFeatures(self, data_type, sample):
+        """Get the saved extracted features."""
+        filename = sample[2]
+        path = self.sequence_path + filename + '-' + str(self.seq_length) + \
+            '-' + data_type + '.txt'
+        if os.path.isfile(path):
+            # Use a dataframe/read_csv for speed increase over numpy.
+            features = pd.read_csv(path, sep=" ", header=None)
+            return features.values
+        else:
+            return None
 
     def BuildImageSequence(self, frames):
         return [GetArrayFromImage(x, self.image_shape) for x in frames]
@@ -112,6 +146,7 @@ class DataSetModel():
         list of size five which is every 5th element of the origina list."""
         assert len(input_list) >= size
         # Get the number to skip between iterations.
+        print('SIZE: ' + str(len(input_list)))
         skip = len(input_list) // size
 
         # Build our new output.

@@ -4,6 +4,8 @@ import os
 import os.path
 from subprocess import call
 
+pathTest = 'C:/Git_Projects2/Human-action-recognition/Videos/Test/'
+
 PATH_TO_FFMPEG = "D:/ffmpeg-20170921-183fd30-win64-static/bin/ffmpeg"
 
 EXTENSION_OF_OUTPUT_FRAME = '.jpg'
