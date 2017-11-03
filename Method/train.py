@@ -17,6 +17,8 @@ CHECKPOINT_PATH = DATA_PATH + 'checkpoints/' + MODEL_NAME + '.{epoch:03d}-{val_l
 EPOCH_NUMBER = 5
 BATCH_SIZE = 32
 
+FEATURE_LENGTH = 4096
+
 def train(concat=False):
     # Creating the callbacks
 
@@ -41,18 +43,15 @@ def train(concat=False):
     else:
         data = DataSetModel(seq_length=SEQ_LENGTH, data_type=DATA_TYPE, image_shape=IMAGE_SHAPE)        
 
-    conv3dModel = Model(len(data.classes), MODEL_NAME, SEQ_LENGTH, SAVED_MODEL)
+    conv3dModel = Model(len(data.classes), MODEL_NAME, SEQ_LENGTH, SAVED_MODEL, FEATURE_LENGTH)
 
     # Get data.
     X, y = data.LoadSequencesToMemory('Train')
     X_test, y_test = data.LoadSequencesToMemory('Test')
+    #print("Outer " + str(X.shape))
+    #y = np_utils.to_categorical(y, 20)
+    #y_test = np_utils.to_categorical(y_test, 20)
 
-    y = np_utils.to_categorical(y, 20)
-    y_test = np_utils.to_categorical(y_test, 20)
-
-    print(X.shape)
-    print(y.shape)
-    return
     conv3dModel.model.fit(
         X,
         y,

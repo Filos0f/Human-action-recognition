@@ -110,9 +110,11 @@ class DataSetModel():
 
             elif self.dataType == 'Features' :
                 sequence = self.GetExtructedFeatures(self.dataType, row)
+                #for i in range(len(sequence)) :
+                #    X.append(sequence[i])
                 X.append(sequence)
                 y.append(self.GetClassOneHot(row[1]))
-
+        #print("Inner: " + str(np.array(X).shape))
         return np.array(X), np.array(y)
 
     def GetExtructedFeatures(self, data_type, sample):
@@ -146,7 +148,6 @@ class DataSetModel():
         list of size five which is every 5th element of the origina list."""
         assert len(input_list) >= size
         # Get the number to skip between iterations.
-        print('SIZE: ' + str(len(input_list)))
         skip = len(input_list) // size
 
         # Build our new output.

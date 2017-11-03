@@ -96,15 +96,17 @@ class Model():
         model.add(Dropout(.5))
         model.add(Dense(4096, activation='relu', name='fc7'))
         model.add(Dropout(.5))
-        model.add(Dense(20, activation='softmax', name='fc8'))
+        model.add(Dense(3, activation='softmax', name='fc8'))
 
         return model
 
     def LSTMModelCreate(self):
         # Simple LSTM model
         model = Sequential()
-        model.add(LSTM(2048, return_sequences=True, input_shape=self.shapeOfInput,
+        model.add(LSTM(4096, return_sequences=True, input_shape=self.shapeOfInput,
                        dropout=0.5))
+        #model.add(LSTM(4096, return_sequences=True))
+        #model.add(LSTM(4096))
         model.add(Flatten())
         model.add(Dense(512, activation='relu'))
         model.add(Dropout(0.5))

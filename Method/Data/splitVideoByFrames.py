@@ -4,13 +4,15 @@ import os
 import os.path
 from subprocess import call
 
-pathTest = 'C:/Git_Projects2/Human-action-recognition/Videos/Test/'
+ABS_PATH = os.getcwd()
 
-PATH_TO_FFMPEG = "D:/ffmpeg-20170921-183fd30-win64-static/bin/ffmpeg"
+pathTest = ABS_PATH + '/Videos/Test/'
+
+PATH_TO_FFMPEG = ABS_PATH + "/Method/Requariments/ffmpeg.exe"
 
 EXTENSION_OF_OUTPUT_FRAME = '.jpg'
 EXTENSION_OF_INPUT_VIDEO = '.avi'
-TRAIN_VIDEO_FOLDER = '../../Videos/Train/' #'./train/'
+TRAIN_VIDEO_FOLDER = '../../Videos/Train/'
 TESTING_VIDEO_FOLDER = '../../Videos/Test/'
 TRAIN_FRAMES_FOLDER = './train/'
 TEST_FRAMES_FOLDER = './test/'
