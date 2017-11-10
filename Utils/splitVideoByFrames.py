@@ -4,15 +4,17 @@ import os
 import os.path
 from subprocess import call
 
-PATH_TO_FFMPEG = "../requirements/ffmpeg.exe"
+PATH_TO_FFMPEG = "./requirements/ffmpeg.exe"
 #PATH_TO_FFMPEG = "../requirements/ffmpeg/bin/ffmpeg.exe"
 
 EXTENSION_OF_OUTPUT_FRAME = '.jpg'
 EXTENSION_OF_INPUT_VIDEO = '.mp4'
-TRAIN_VIDEO_FOLDER = '../Train/'
-TESTING_VIDEO_FOLDER = '../Validation/'
+TRAIN_VIDEO_FOLDER = './Train/'
+TESTING_VIDEO_FOLDER = './Validation/'
 
-WORKER_DIR = '../workspace'
+WORKER_DIR = './workspace'
+
+os.chdir("../")
 
 def ExtractFrames():
     if not os.path.exists(WORKER_DIR):
@@ -35,8 +37,8 @@ def ProcessThePath(folder, dataFiles) :
 
     for actionClassFolder in foldersClasses:
         # Getting the list of videos from one folder
-        filesForOneActionClass = glob.glob(actionClassFolder + '/*' + EXTENSION_OF_INPUT_VIDEO)
 
+        filesForOneActionClass = glob.glob(actionClassFolder + '/*' + EXTENSION_OF_INPUT_VIDEO)
         for pathOfVideo in filesForOneActionClass:
             # Getting the frames from video
             videoInfo = SplitVideoPath(pathOfVideo)
@@ -44,9 +46,9 @@ def ProcessThePath(folder, dataFiles) :
             lableOfDataType, className, fileName, fileNameWithExtension = videoInfo
 
             if not CheckTheFrameAlreadyExtracted(videoInfo):
-                src = '../' + lableOfDataType + '/' + className + '/' + \
+                src = './' + lableOfDataType + '/' + className + '/' + \
                     fileNameWithExtension
-                dest = '../' + lableOfDataType + '/' + className + '/' + \
+                dest = './' + lableOfDataType + '/' + className + '/' + \
                     fileName + '-%04d'+EXTENSION_OF_OUTPUT_FRAME
                 command = [PATH_TO_FFMPEG,
                         '-i', src,
@@ -63,23 +65,25 @@ def ProcessThePath(folder, dataFiles) :
 
 def NumberOfFrames(videoInfo):
     lableOfDataType, className, fileName, _ = videoInfo
-    generated_files = glob.glob('../' + lableOfDataType + '/' + className + '/' +
+    generated_files = glob.glob('./' + lableOfDataType + '/' + className + '/' +
                                 fileName + '*.jpg')
     return len(generated_files)
 
 def SplitVideoPath(path):
+    print(path)
     parts = path.split('\\')
+    print(parts)
     fileNameWithExtension = parts[2]
     fileName = fileNameWithExtension.split('.')[0]
     className = parts[1]
     # Lable Train or Test
-    lableOfDataType = parts[0][3:len(parts[0])]
+    lableOfDataType = parts[0][2:len(parts[0])]
     print(lableOfDataType)
     return lableOfDataType, className, fileName, fileNameWithExtension
 
 def CheckTheFrameAlreadyExtracted(videoInfo):
     lableOfDataType, className, fileName, _ = videoInfo
-    return bool(os.path.exists('../' + lableOfDataType + '/' + className +
+    return bool(os.path.exists('./' + lableOfDataType + '/' + className +
                                '/' + fileName + '-0001.jpg'))
 
 def main():
