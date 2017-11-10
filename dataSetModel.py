@@ -18,7 +18,7 @@ def GetArrayFromImage(image, target_shape):
     return x
 
 def GetData():
-    with open('./Data/FilesData.csv', 'r') as fin:
+    with open('./Workspace/FilesData.csv', 'r') as fin:
         reader = csv.reader(fin)
         data = list(reader)
     return data
@@ -33,7 +33,7 @@ class DataSetModel():
         self.data = GetData()
 
         self.dataType = data_type
-        self.sequence_path = './Data/sequences/'
+        self.sequence_path = './Workspace/sequences/'
 
         # Get the classes.
         self.classes = self.GetClasses()
@@ -70,7 +70,7 @@ class DataSetModel():
         train = []
         test = []
         for item in self.data:
-            if item[0] == '../../Videos/Train' :
+            if item[0] == 'Train' :
                 train.append(item)
             else:
                 test.append(item)
@@ -94,7 +94,6 @@ class DataSetModel():
 
         X, y = [], []
         for row in data:
-
             if self.dataType == 'Images' :
                 frames = self.GetFramesFromSample(row)
                 img_arr = self.BuildImageSequence(frames)
@@ -136,7 +135,7 @@ class DataSetModel():
     def GetFramesFromSample(sample):
         """Given a sample row from the data file, get all the corresponding frame
         filenames."""
-        path = './data/' + sample[0] + '/' + sample[1] + '/'
+        path = './' + sample[0] + '/' + sample[1] + '/'
         filename = sample[2]
         images = sorted(glob.glob(path + filename + '*jpg'))
         return images

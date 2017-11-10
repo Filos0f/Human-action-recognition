@@ -11,6 +11,9 @@ import numpy as np
 
 from dataSetModel import DataSetModel, GetArrayFromImage
 from keras.applications.inception_v3 import InceptionV3, preprocess_input
+from keras.layers import Reshape
+from keras.layers.wrappers import Bidirectional
+from keras.layers.wrappers import TimeDistributed
 
 class Model():
     def __init__(self, classesNumber, modelName, sequenseLength, savedModel=None, featuresLength=2048):
@@ -18,6 +21,7 @@ class Model():
         self.sequenseLength = sequenseLength
         self.savedModel = savedModel
         self.classesNumber = classesNumber
+        self.featuresLength = featuresLength
 
         if self.savedModel is not None:
             print("Loading model %s" % self.savedModel)
@@ -30,10 +34,15 @@ class Model():
             print("Loading LSTM model")
             self.shapeOfInput = (sequenseLength, featuresLength)
             self.model = self.LSTMModelCreate()
+        elif modelName == 'Conv3dBLSTM' :
+            print("Loading Conv3d + BLSTM model")
+            self.shapeOfInputConv3d = (sequenseLength, 80, 80, 3)
+            self.shapeOfInputLSTM = (1, sequenseLength, featuresLength)
+            self.model = self.Conv3dBLSTM()
         else:
             print("Unknown network model.")
             sys.exit()
-
+        print(modelName + " model was successfully created.")
         metrics = ['accuracy']
         if self.classesNumber >= 10:
             metrics.append('top_k_categorical_accuracy')
@@ -42,8 +51,9 @@ class Model():
 
         self.model.compile(loss='binary_crossentropy', optimizer=optimizer,
                            metrics=metrics)
+        print(modelName + " model was successfully compiled.")
 
-        #print(self.model.summary())
+        print(self.model.summary())
 
     def Conv3DModelCreate(self):
         # According to https://gist.github.com/albertomontesg/d8b21a179c1e6cca0480ebdf292c34d2
@@ -96,14 +106,14 @@ class Model():
         model.add(Dropout(.5))
         model.add(Dense(4096, activation='relu', name='fc7'))
         model.add(Dropout(.5))
-        model.add(Dense(3, activation='softmax', name='fc8'))
+        model.add(Dense(self.classesNumber, activation='softmax', name='fc8'))
 
         return model
 
     def LSTMModelCreate(self):
         # Simple LSTM model
         model = Sequential()
-        model.add(LSTM(4096, return_sequences=True, input_shape=self.shapeOfInput,
+        model.add(LSTM(self.featuresLength, return_sequences=True, input_shape=self.shapeOfInput,
                        dropout=0.5))
         #model.add(LSTM(4096, return_sequences=True))
         #model.add(LSTM(4096))
@@ -139,3 +149,62 @@ class Model():
         features = features[0]
 
         return features
+
+    def Conv3dBLSTM(self) :
+        model = Sequential()
+        # 1st layer group
+        model = Sequential()
+        # 1st layer group
+        # (samples, conv_dim1, conv_dim2, conv_dim3, channels)
+        model.add(Conv3D(64, 3, 3, 3, activation='relu', 
+                                border_mode='same', name='conv1',
+                                subsample=(1, 1, 1), 
+                                input_shape=self.shapeOfInputConv3d)) # 40 80 80 3
+        model.add(MaxPooling3D(pool_size=(1, 2, 2), strides=(1, 2, 2), 
+                               border_mode='valid', name='pool1'))
+        # 2nd layer group
+        model.add(Conv3D(128, 3, 3, 3, activation='relu', 
+                                border_mode='same', name='conv2',
+                                subsample=(1, 1, 1)))
+        model.add(MaxPooling3D(pool_size=(2, 2, 2), strides=(2, 2, 2), 
+                               border_mode='valid', name='pool2'))
+        # 3rd layer group
+        model.add(Conv3D(256, 3, 3, 3, activation='relu', 
+                                border_mode='same', name='conv3a',
+                                subsample=(1, 1, 1)))
+        model.add(Conv3D(256, 3, 3, 3, activation='relu', 
+                                border_mode='same', name='conv3b',
+                                subsample=(1, 1, 1)))
+        model.add(MaxPooling3D(pool_size=(2, 2, 2), strides=(2, 2, 2), 
+                               border_mode='valid', name='pool3'))
+        # 4th layer group
+        model.add(Conv3D(512, 3, 3, 3, activation='relu', 
+                                border_mode='same', name='conv4a',
+                                subsample=(1, 1, 1)))
+        model.add(Conv3D(512, 3, 3, 3, activation='relu', 
+                                border_mode='same', name='conv4b',
+                                subsample=(1, 1, 1)))
+        model.add(MaxPooling3D(pool_size=(2, 2, 2), strides=(2, 2, 2), 
+                               border_mode='valid', name='pool4'))
+        # 5th layer group
+        model.add(Conv3D(512, 3, 3, 3, activation='relu', 
+                                border_mode='same', name='conv5a',
+                                subsample=(1, 1, 1)))
+        model.add(Conv3D(512, 3, 3, 3, activation='relu', 
+                                border_mode='same', name='conv5b',
+                                subsample=(1, 1, 1)))
+        model.add(ZeroPadding3D(padding=(0, 1, 1)))
+        model.add(MaxPooling3D(pool_size=(2, 2, 2), strides=(2, 2, 2), 
+                               border_mode='valid', name='pool5'))
+        model.add(Reshape(target_shape=(2, 512* 3* 3)))
+        # (batch_size, timesteps, input_dim)
+
+        model.add(Bidirectional(LSTM(512* 3* 3, input_shape=self.shapeOfInputLSTM,
+                                  return_sequences=False,
+                                  activation="softmax",
+                                  dropout=0.5)))
+        model.add(Dense(512, activation='relu'))
+        model.add(Dropout(0.5))
+        model.add(Dense(self.classesNumber, activation='softmax'))
+
+        return model

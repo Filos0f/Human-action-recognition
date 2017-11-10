@@ -13,7 +13,7 @@ ABS_PATH = os.getcwd()
 SEQ_LENGTH = 40
 IMAGE_SHAPE = (80, 80, 3)
 MODEL_NAME_FOR_EXTRUCTION = 'Conv3d'
-SAVED_MODEL = "./Data/checkpoints/Conv3d.004-0.000.hdf5"
+SAVED_MODEL = "./Data/checkpoints/Conv3d.004-0.733.hdf5"
 
 GLOBAL_PATH = ABS_PATH + '../Videos/Test/'
 
@@ -28,18 +28,19 @@ def extructFeatures() :
 
     intermediate_layer_model = KModel(inputs=conv3dModel.model.layers[0].input,
                                  outputs=conv3dModel.model.get_layer('fc6').output)
-
+    
     pbar = tqdm(total=len(data.data))
+    print(data.data)
     for video in data.data:
         # Get the path to the sequence for this video.
         path = './Data/sequences/' + video[2] + '-' + str(SEQ_LENGTH) + \
             '-Features.txt'
-
+        
         if os.path.isfile(path):
             pbar.update(1)
             continue
-
-        if video[0] == '../../Videos/Train' :
+        print(video[0])
+        if video[0] == '../Videos/Train' :
             continue
         frames = DataSetModel.GetFramesFromSample(video)
         img_arr = [GetArrayFromImage(x, IMAGE_SHAPE) for x in frames]

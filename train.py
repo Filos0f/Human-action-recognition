@@ -3,25 +3,30 @@ from model import Model
 from dataSetModel import DataSetModel
 import time
 from keras.utils import np_utils
+import os
 
-MODEL_NAME = 'Conv3d'
+#MODEL_NAME = 'Conv3d'
+MODEL_NAME = 'Conv3dBLSTM'
+#MODEL_NAME = 'LSTM'
 SAVED_MODEL = None
 SEQ_LENGTH = 40
 IMAGE_SHAPE = (80, 80, 3)
 
 DATA_TYPE = 'Images'
-DATA_PATH = './Data/'
+DATA_PATH = './Workspace/'
 
 CHECKPOINT_PATH = DATA_PATH + 'checkpoints/' + MODEL_NAME + '.{epoch:03d}-{val_loss:.3f}.hdf5'
 
 EPOCH_NUMBER = 5
-BATCH_SIZE = 32
+BATCH_SIZE = 10
 
 FEATURE_LENGTH = 4096
 
 def train(concat=False):
-    # Creating the callbacks
 
+    if not os.path.exists(DATA_PATH + 'checkpoints'):
+        os.makedirs(DATA_PATH + 'checkpoints')
+    # Creating the callbacks
     # 1. Save the model.
     #checkpointer = ModelCheckpoint(filepath=CHECKPOINT_PATH, verbose=1, save_best_only=True)
     checkpointer = ModelCheckpoint(filepath=CHECKPOINT_PATH, monitor='val_acc', verbose=0,
@@ -36,7 +41,10 @@ def train(concat=False):
 
     # 4. Save results to logger.
     timestamp = time.time()
-    csv_logger = CSVLogger(DATA_PATH+'logs/' + MODEL_NAME + '-' + 'training-' + str(timestamp) + '.log')
+
+    if not os.path.exists(DATA_PATH + 'logs'):
+        os.makedirs(DATA_PATH + 'logs')
+    csv_logger = CSVLogger(DATA_PATH + 'logs/' + MODEL_NAME + '-' + 'training-' + str(timestamp) + '.log')
 
     if IMAGE_SHAPE is None:
         data = DataSetModel(seq_length=SEQ_LENGTH, data_type=DATA_TYPE)
@@ -48,10 +56,7 @@ def train(concat=False):
     # Get data.
     X, y = data.LoadSequencesToMemory('Train')
     X_test, y_test = data.LoadSequencesToMemory('Test')
-    #print("Outer " + str(X.shape))
-    #y = np_utils.to_categorical(y, 20)
-    #y_test = np_utils.to_categorical(y_test, 20)
-
+    
     conv3dModel.model.fit(
         X,
         y,

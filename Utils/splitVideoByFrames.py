@@ -4,32 +4,26 @@ import os
 import os.path
 from subprocess import call
 
-ABS_PATH = os.getcwd()
-
-pathTest = ABS_PATH + '/Videos/Test/'
-
-PATH_TO_FFMPEG = ABS_PATH + "/Method/Requariments/ffmpeg.exe"
+PATH_TO_FFMPEG = "../requirements/ffmpeg.exe"
+#PATH_TO_FFMPEG = "../requirements/ffmpeg/bin/ffmpeg.exe"
 
 EXTENSION_OF_OUTPUT_FRAME = '.jpg'
-EXTENSION_OF_INPUT_VIDEO = '.avi'
-TRAIN_VIDEO_FOLDER = '../../Videos/Train/'
-TESTING_VIDEO_FOLDER = '../../Videos/Test/'
-TRAIN_FRAMES_FOLDER = './train/'
-TEST_FRAMES_FOLDER = './test/'
+EXTENSION_OF_INPUT_VIDEO = '.mp4'
+TRAIN_VIDEO_FOLDER = '../Train/'
+TESTING_VIDEO_FOLDER = '../Validation/'
+
+WORKER_DIR = '../workspace'
 
 def ExtractFrames():
-    # Checking whether the folder exists, create othervise
-    if not os.path.exists(TRAIN_FRAMES_FOLDER):
-        os.makedirs(TRAIN_FRAMES_FOLDER)
-    if not os.path.exists(TEST_FRAMES_FOLDER):
-        os.makedirs(TEST_FRAMES_FOLDER)
+    if not os.path.exists(WORKER_DIR):
+        os.makedirs(WORKER_DIR)
 
     dataFiles = []
         
     ProcessThePath(TRAIN_VIDEO_FOLDER, dataFiles)
     ProcessThePath(TESTING_VIDEO_FOLDER, dataFiles)
 
-    with open('./FilesData.csv', 'w') as fout:
+    with open(WORKER_DIR + '/FilesData.csv', 'w') as fout:
         writer = csv.writer(fout)
         writer.writerows(dataFiles)
 
@@ -50,24 +44,26 @@ def ProcessThePath(folder, dataFiles) :
             lableOfDataType, className, fileName, fileNameWithExtension = videoInfo
 
             if not CheckTheFrameAlreadyExtracted(videoInfo):
-                src = lableOfDataType + '/' + className + '/' + \
+                src = '../' + lableOfDataType + '/' + className + '/' + \
                     fileNameWithExtension
-                dest = lableOfDataType + '/' + className + '/' + \
+                dest = '../' + lableOfDataType + '/' + className + '/' + \
                     fileName + '-%04d'+EXTENSION_OF_OUTPUT_FRAME
-                print(src)
-                print(dest)
-                call([PATH_TO_FFMPEG, "-i", src, dest])
+                command = [PATH_TO_FFMPEG,
+                        '-i', src,
+                        '-vf', 'fps=1/0.05',
+                        dest]
+                call(command)
+                
 
             # Now get how many frames it is.
             framesCount = NumberOfFrames(videoInfo)
-
             dataFiles.append([lableOfDataType, className, fileName, framesCount])
 
             print("Generated %d frames for %s" % (framesCount, fileName))
 
 def NumberOfFrames(videoInfo):
     lableOfDataType, className, fileName, _ = videoInfo
-    generated_files = glob.glob(lableOfDataType + '/' + className + '/' +
+    generated_files = glob.glob('../' + lableOfDataType + '/' + className + '/' +
                                 fileName + '*.jpg')
     return len(generated_files)
 
@@ -77,13 +73,13 @@ def SplitVideoPath(path):
     fileName = fileNameWithExtension.split('.')[0]
     className = parts[1]
     # Lable Train or Test
-    lableOfDataType = parts[0]
+    lableOfDataType = parts[0][3:len(parts[0])]
     print(lableOfDataType)
     return lableOfDataType, className, fileName, fileNameWithExtension
 
 def CheckTheFrameAlreadyExtracted(videoInfo):
     lableOfDataType, className, fileName, _ = videoInfo
-    return bool(os.path.exists(lableOfDataType + '/' + className +
+    return bool(os.path.exists('../' + lableOfDataType + '/' + className +
                                '/' + fileName + '-0001.jpg'))
 
 def main():
