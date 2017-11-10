@@ -72,6 +72,8 @@ def NumberOfFrames(videoInfo):
 def SplitVideoPath(path):
     print(path)
     parts = path.split('\\')
+    if len(parts) == 1 :
+        parts = path.split('/')
     print(parts)
     fileNameWithExtension = parts[2]
     fileName = fileNameWithExtension.split('.')[0]
