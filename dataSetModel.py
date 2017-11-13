@@ -37,9 +37,7 @@ class DataSetModel():
 
         # Get the classes.
         self.classes = self.GetClasses()
-
         self.data = self.CleanData()
-
         self.image_shape = image_shape
 
     def GetClasses(self):
@@ -108,12 +106,12 @@ class DataSetModel():
                     y.append(self.GetClassOneHot(row[1]))
 
             elif self.dataType == 'Features' :
+                print(row)
                 sequence = self.GetExtructedFeatures(self.dataType, row)
-                #for i in range(len(sequence)) :
-                #    X.append(sequence[i])
+                sequence = self.RescaleList(sequence, 1)
                 X.append(sequence)
                 y.append(self.GetClassOneHot(row[1]))
-        #print("Inner: " + str(np.array(X).shape))
+
         return np.array(X), np.array(y)
 
     def GetExtructedFeatures(self, data_type, sample):

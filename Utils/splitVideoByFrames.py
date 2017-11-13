@@ -4,6 +4,7 @@ import os
 import os.path
 from subprocess import call
 
+#PATH_TO_FFMPEG = "ffmpeg"
 PATH_TO_FFMPEG = "./requirements/ffmpeg.exe"
 #PATH_TO_FFMPEG = "../requirements/ffmpeg/bin/ffmpeg.exe"
 
@@ -44,15 +45,18 @@ def ProcessThePath(folder, dataFiles) :
             videoInfo = SplitVideoPath(pathOfVideo)
 
             lableOfDataType, className, fileName, fileNameWithExtension = videoInfo
-
             if not CheckTheFrameAlreadyExtracted(videoInfo):
-                src = './' + lableOfDataType + '/' + className + '/' + \
+                src = os.getcwd() + '/' + lableOfDataType + '/' + className + '/' + \
                     fileNameWithExtension
-                dest = './' + lableOfDataType + '/' + className + '/' + \
+                dest = os.getcwd() + '/' + lableOfDataType + '/' + className + '/' + \
                     fileName + '-%04d'+EXTENSION_OF_OUTPUT_FRAME
+                print(src)
+                print(dest)
+                print(PATH_TO_FFMPEG)
                 command = [PATH_TO_FFMPEG,
                         '-i', src,
-                        '-vf', 'fps=1/0.05',
+                        '-vframes', '100',
+                        '-vf', 'fps=1/0.5',
                         dest]
                 call(command)
                 
@@ -70,17 +74,17 @@ def NumberOfFrames(videoInfo):
     return len(generated_files)
 
 def SplitVideoPath(path):
-    print(path)
     parts = path.split('\\')
     if len(parts) == 1 :
         parts = path.split('/')
-    print(parts)
-    fileNameWithExtension = parts[2]
+        fileNameWithExtension = parts[3]
+        className = parts[2]
+        lableOfDataType = parts[1]
+    else :
+        fileNameWithExtension = parts[2]
+        className = parts[1]
+        lableOfDataType = parts[0][2 : len(parts[0])]
     fileName = fileNameWithExtension.split('.')[0]
-    className = parts[1]
-    # Lable Train or Test
-    lableOfDataType = parts[0][2:len(parts[0])]
-    print(lableOfDataType)
     return lableOfDataType, className, fileName, fileNameWithExtension
 
 def CheckTheFrameAlreadyExtracted(videoInfo):

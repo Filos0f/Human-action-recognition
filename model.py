@@ -32,7 +32,8 @@ class Model():
             self.model = self.Conv3DModelCreate()
         elif modelName == 'LSTM' :
             print("Loading LSTM model")
-            self.shapeOfInput = (sequenseLength, featuresLength)
+            #self.shapeOfInput = (sequenseLength, featuresLength)
+            self.shapeOfInput = (1, featuresLength)
             self.model = self.LSTMModelCreate()
         elif modelName == 'Conv3dBLSTM' :
             print("Loading Conv3d + BLSTM model")

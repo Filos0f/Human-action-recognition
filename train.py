@@ -6,13 +6,13 @@ from keras.utils import np_utils
 import os
 
 #MODEL_NAME = 'Conv3d'
-MODEL_NAME = 'Conv3dBLSTM'
-#MODEL_NAME = 'LSTM'
+#MODEL_NAME = 'Conv3dBLSTM'
+MODEL_NAME = 'LSTM'
 SAVED_MODEL = None
-SEQ_LENGTH = 40
+SEQ_LENGTH = 20
 IMAGE_SHAPE = (80, 80, 3)
 
-DATA_TYPE = 'Images'
+DATA_TYPE = 'Features'
 DATA_PATH = './Workspace/'
 
 CHECKPOINT_PATH = DATA_PATH + 'checkpoints/' + MODEL_NAME + '.{epoch:03d}-{val_loss:.3f}.hdf5'
@@ -55,8 +55,9 @@ def train(concat=False):
 
     # Get data.
     X, y = data.LoadSequencesToMemory('Train')
-    X_test, y_test = data.LoadSequencesToMemory('Test')
-    
+    X_test, y_test = data.LoadSequencesToMemory('Validation')
+    print(X.shape)
+
     conv3dModel.model.fit(
         X,
         y,
