@@ -11,7 +11,7 @@ from keras.models import Model as KModel
 SEQ_LENGTH = 20
 IMAGE_SHAPE = (80, 80, 3)
 MODEL_NAME_FOR_EXTRUCTION = 'Conv3d'
-SAVED_MODEL = "./Workspace/checkpoints/Conv3d.002-0.196.hdf5"
+SAVED_MODEL = "./workspace/checkpoints/Conv3d.002-0.196.hdf5"
 
 def extructFeatures() :
     # Get the dataset.
@@ -26,7 +26,7 @@ def extructFeatures() :
     pbar = tqdm(total=len(data.data))
     for video in data.data:
         # Get the path to the sequence for this video.
-        path = './Workspace/sequences/' + video[2] + '-' + str(SEQ_LENGTH) + '-Features.txt'
+        path = './workspace/sequences/' + video[2] + '-' + str(SEQ_LENGTH) + '-Features.txt'
         
         if os.path.isfile(path):
             pbar.update(1)

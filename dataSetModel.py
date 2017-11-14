@@ -18,7 +18,7 @@ def GetArrayFromImage(image, target_shape):
     return x
 
 def GetData():
-    with open('./Workspace/FilesData.csv', 'r') as fin:
+    with open('./workspace/FilesData.csv', 'r') as fin:
         reader = csv.reader(fin)
         data = list(reader)
     return data
@@ -33,7 +33,7 @@ class DataSetModel():
         self.data = GetData()
 
         self.dataType = data_type
-        self.sequence_path = './Workspace/sequences/'
+        self.sequence_path = './workspace/sequences/'
 
         # Get the classes.
         self.classes = self.GetClasses()

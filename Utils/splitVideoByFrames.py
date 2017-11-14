@@ -56,7 +56,7 @@ def ProcessThePath(folder, dataFiles) :
                 command = [PATH_TO_FFMPEG,
                         '-i', src,
                         '-vframes', '100',
-                        '-vf', 'fps=1/0.5',
+                        #'-vf', 'fps=1/0.5',
                         dest]
                 call(command)
                 
