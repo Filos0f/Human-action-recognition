@@ -20,11 +20,19 @@ os.chdir("../")
 def ExtractFrames():
     if not os.path.exists(WORKER_DIR):
         os.makedirs(WORKER_DIR)
+    if not os.path.exists(WORKER_DIR + '/data'):
+        os.makedirs(WORKER_DIR + '/data')
+    if os.path.exists(TRAIN_VIDEO_FOLDER):
+        if not os.path.exists(WORKER_DIR + '/data' + '/Train'):
+            os.makedirs(WORKER_DIR + '/data' + '/Train')
+    if os.path.exists(TESTING_VIDEO_FOLDER):
+        if not os.path.exists(WORKER_DIR + '/data' + '/Validation'):
+            os.makedirs(WORKER_DIR + '/data' + '/Validation')
 
     dataFiles = []
         
-    ProcessThePath(TRAIN_VIDEO_FOLDER, dataFiles)
-    ProcessThePath(TESTING_VIDEO_FOLDER, dataFiles)
+    ProcessThePath(TRAIN_VIDEO_FOLDER, WORKER_DIR + '/data', dataFiles)
+    ProcessThePath(TESTING_VIDEO_FOLDER, WORKER_DIR + '/data', dataFiles)
 
     with open(WORKER_DIR + '/FilesData.csv', 'w') as fout:
         writer = csv.writer(fout)
@@ -32,13 +40,14 @@ def ExtractFrames():
 
     print("Frames were extracted from %d video files." % (len(dataFiles)))
 
-def ProcessThePath(folder, dataFiles) :
+def ProcessThePath(input_folder, output_folder, dataFiles) :
     # Getting the folders names which should be named like a name of class action
-    foldersClasses = glob.glob(folder + '*')
-
+    foldersClasses = glob.glob(input_folder + '*')
+    print(foldersClasses)
     for actionClassFolder in foldersClasses:
         # Getting the list of videos from one folder
-
+        if not os.path.exists(output_folder + '/' + actionClassFolder):
+            os.makedirs(output_folder + '/' + actionClassFolder)
         filesForOneActionClass = glob.glob(actionClassFolder + '/*' + EXTENSION_OF_INPUT_VIDEO)
         for pathOfVideo in filesForOneActionClass:
             # Getting the frames from video
@@ -48,11 +57,10 @@ def ProcessThePath(folder, dataFiles) :
             if not CheckTheFrameAlreadyExtracted(videoInfo):
                 src = os.getcwd() + '/' + lableOfDataType + '/' + className + '/' + \
                     fileNameWithExtension
-                dest = os.getcwd() + '/' + lableOfDataType + '/' + className + '/' + \
+                dest = os.getcwd() + output_folder[1:] + '/' + lableOfDataType + '/' + className + '/' + \
                     fileName + '-%04d'+EXTENSION_OF_OUTPUT_FRAME
-                print(src)
-                print(dest)
-                print(PATH_TO_FFMPEG)
+                #dest = os.getcwd() + '/' + lableOfDataType + '/' + className + '/' + \
+                #    fileName + '-%04d'+EXTENSION_OF_OUTPUT_FRAME
                 command = [PATH_TO_FFMPEG,
                         '-i', src,
                         '-vframes', '100',
